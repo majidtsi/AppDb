@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# main_windows_biblio.py
+# persistence sur BD SQLite
+
 from PyQt5.QtCore import pyqtSlot, QDate, QItemSelectionModel
 from PyQt5.QtWidgets import QMainWindow, QMessageBox
 
@@ -5,7 +9,9 @@ from Ui_main_window_biblio import Ui_MainWindowBiblio
 
 from modele_biblio import Livre, ModeleTableBiblio
 
+
 class MainWindowBiblio(QMainWindow, Ui_MainWindowBiblio):
+
     def __init__(self, parent=None):
         super(MainWindowBiblio, self).__init__(parent)
         self.setupUi(self)
@@ -30,10 +36,12 @@ class MainWindowBiblio(QMainWindow, Ui_MainWindowBiblio):
         self.dateEditAnnee.dateChanged.connect(self.declareSaisieEnCours)
         self.plainTextEditResume.textChanged.connect(self.declareSaisieEnCours)
         self.doubleSpinBoxPrix.valueChanged.connect(self.declareSaisieEnCours)
+
     def declareSaisieEnCours(self):
         self.pushButtonNouveau.setEnabled(False)
         saisieValide = len(self.lineEditTitre.text().strip()) > 0
         self.pushButtonSauvegarder.setEnabled(saisieValide)
+
     def on_treeViewLivres_selectionChanged(self, selected, deselected):
         indexsSelection = selected.indexes()
         if self.pushButtonSauvegarder.isEnabled():
@@ -70,6 +78,7 @@ class MainWindowBiblio(QMainWindow, Ui_MainWindowBiblio):
         self.dateEditAnnee.setDate(self.dateEditAnnee.minimumDate())
         self.plainTextEditResume.setPlainText("")
         self.doubleSpinBoxPrix.setValue(self.doubleSpinBoxPrix.minimum())
+
     def afficheLivre(self, livre):
         self.lineEditTitre.setText(livre.titre)
         self.lineEditAuteur.setText(livre.auteur)
@@ -116,5 +125,4 @@ class MainWindowBiblio(QMainWindow, Ui_MainWindowBiblio):
             indiceLivreSelectionne = indexsSelectionnes[0].row()
             self.modeleTableBiblio.supprimeLivre(indiceLivreSelectionne)
             self.modificationAEnregistrer(True)
-
 

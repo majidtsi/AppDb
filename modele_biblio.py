@@ -1,47 +1,52 @@
+# -*- coding: utf-8 -*-
+# modele_biblio.py
+# persistence sur BD SQLite
 
 from PyQt5.QtCore import Qt, QAbstractTableModel, QModelIndex, QVariant
 from PyQt5.QtSql import QSqlDatabase, QSqlQuery
 
 from collections import namedtuple, OrderedDict
-
 import os
 
-NOM_FICHIER_DB = "bibliotheque.db"
+NOM_FICHIER_BD = "bibliotheque.db"
 
 Livre = namedtuple('Livre', ('idLivre', 'titre', 'auteur', 'editeur',
                              'genre', 'annee', 'resume', 'prix'))
+
 
 class ModeleTableBiblio(QAbstractTableModel):
 
     def __init__(self):
         super(ModeleTableBiblio, self).__init__()
-        self.titresColonnes = ("Titre", "Auteur", "Editeur")
+        self.titresColonnes = ("Titre", "Auteur", "Éditeur")
         self.livres = None
         self.idParGenre = None
-        bdExiste = os.path.exists(NOM_FICHIER_DB)
-        bd=QSqlDatabase.addDatabase('QSQLITE')
-        bd.setDatabaseName(NOM_FICHIER_DB)
+        bdExiste = os.path.exists(NOM_FICHIER_BD)
+        bd = QSqlDatabase.addDatabase('QSQLITE')
+        bd.setDatabaseName(NOM_FICHIER_BD)
         bd.open()
         if not bdExiste:
-            self.creaDB()
-        self.litDB()
+            self.creeBD()
+        self.litBD()
 
-    def creaDB(self):
+    def creeBD(self):
         QSqlQuery(''' CREATE TABLE genres (
-            genre_id INTEGER PRIMARY KEY,
-            GENRE text) ''')
-        QSqlQuery(''' create table BOOKS (
-                    book_id INTEGER PRIMARY KEY,
-                    title TEXT,
-                    author TEXT,
-                    publisher TEXT,
-                    genre_id INTEGER,
-                    year INTEGER,
-                    summary TEXT,
-                    price FLOAT ) ''')
+                        genre_id  INTEGER PRIMARY KEY,
+                        genre     TEXT ) ''')
+        QSqlQuery(''' CREATE TABLE books (
+                        book_id   INTEGER PRIMARY KEY,
+                        title     TEXT,
+                        author    TEXT,
+                        publisher TEXT,
+                        genre_id  INTEGER,
+                        year      INTEGER,
+                        summary   TEXT,
+                        price     FLOAT ) ''')
         QSqlQuery(''' INSERT INTO genres (genre)
-                VALUES ("---"), ("Biographie"), ("Fantastique"),
-                ("Historique"),("Policier"),("Science-Fiction")''')
+                      VALUES ("---"), ("Biographie"), ("Fantastique"),
+                             ("Historique"), ("Policier"),
+                             ("Science-Fiction") ''')
+
     def litBD(self):
         query = QSqlQuery(''' SELECT genre_id, genre
                               FROM genres
@@ -60,12 +65,13 @@ class ModeleTableBiblio(QAbstractTableModel):
             self.livres.append(livre)
 
     def genres(self):
-        return self.dParGenre.keys()
+        return self.idParGenre.keys()
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole and orientation == Qt.Horizontal:
             return self.titresColonnes[section]
-        return QVariant
+        return QVariant()
+
     def columnCount(self, parent):
         return len(self.titresColonnes)
 
@@ -73,10 +79,11 @@ class ModeleTableBiblio(QAbstractTableModel):
         return len(self.livres)
 
     def data(self, index, role):
-        # colonne + 1 pour sauter l'attribut idLivre
+        # attention: colonne + 1 pour sauter l'attribut idLivre
         if role == Qt.DisplayRole and index.isValid():
             return self.livres[index.row()][index.column() + 1]
         return QVariant()
+
     def ajouteLivre(self, livre):
         query = QSqlQuery()
         query.prepare(''' INSERT INTO books
@@ -135,7 +142,3 @@ class ModeleTableBiblio(QAbstractTableModel):
         self.livres[indiceLivre] = livre
         self.dataChanged.emit(self.createIndex(indiceLivre, 0),
                               self.createIndex(indiceLivre, 2))
-
-
-
-
